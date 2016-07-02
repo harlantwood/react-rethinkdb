@@ -3,6 +3,8 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var ReactRethinkdb = require('react-rethinkdb');
 var r = ReactRethinkdb.r;
+var QueryRequest = ReactRethinkdb.QueryRequest;
+import Rethinkable from './Rethinkable';
 
 // Open a react-rethinkdb session (a WebSocket connection to the server)
 ReactRethinkdb.DefaultSession.connect({
@@ -13,64 +15,30 @@ ReactRethinkdb.DefaultSession.connect({
   db: 'test',        // default database, passed to rethinkdb.connect
 });
 
-// Create our React component
-var App = React.createClass({
+const session = component => component.props[name];
 
-  // Enable RethinkDB query subscriptions in this component
-  mixins: [ReactRethinkdb.DefaultMixin],
+@Rethinkable(session)
+class App extends React.Component {
 
-  // Define the RethinkDB queries this component subscribes to.
-  //
-  // In this case, there is only one query with the key 'turtles', which runs
-  // the query r.table('turtles') with a realtime changefeed. This just lists
-  // all of the rows in the turtles table. In the render() function,
-  // this.data.turtles will be populated with a QueryResult for this query.
-  //
-  // When this component is mounted or it has new props or state, the observe()
-  // function will be re-evaluated. If the result has changed (or it's called
-  // for the first time), the resulting queries will be executed and this
-  // component will subscribe to the results.
-  observe: function(props, state) {
+  observe (props, state) {
     return {
-      turtles: new ReactRethinkdb.QueryRequest({
-        query: r.table('turtles'), // RethinkDB query
-        changes: true,             // subscribe to realtime changefeed
-        initial: [],               // return [] while loading
-      }),
+      turtles: new QueryRequest({
+        query: r.table('turtles'),
+        changes: true
+      })
     };
-  },
+  }
 
-  // This is called when the <form> in render() is submitted by the browser. It
-  // grabs the text field value and runs a RethinkDB query to insert a new row.
-  handleSubmit: function(event) {
-    event.preventDefault();
-    var nameInput = this.refs.firstName;
-    var query = r.table('turtles').insert({firstName: nameInput.value});
-    nameInput.value = '';
-    ReactRethinkdb.DefaultSession.runQuery(query);
-  },
-
-  // This is the standard React render function, which returns the rendered JSX
-  // definition for this component. Because we added the ReactRethinkdb mixin
-  // and defined an observe() function, we can reference this.data to display
-  // the results of our subscribed queries.
-  //
-  // The crazy looking HTML-inside-JavaScript syntax below is JSX, which babel
-  // compiles down to ordinary JavaScript. The curly braces allow us
-  // interpolate arbitrary JavaScript expressions inside our JSX.
-  render: function() {
-    var turtleDivs = this.data.turtles.value().map(function(x) {
-      return <div key={x.id}>{x.firstName}</div>;
-    });
-    return <div>
-      <form onSubmit={this.handleSubmit}>
-        <input type="text" ref="firstName" />
-        <input type="submit" />
-      </form>
-      {turtleDivs}
-    </div>;
-  },
-});
+  render () {
+    return (
+      <ul>
+        {this.data.turtles.value().map(turtle => (
+          <li key={turtle.id}>{turtle.name}</li>
+        ))}
+      </ul>
+    );
+  }
+}
 
 // Render the App component into the <div id="app"> element on index.html
 ReactDOM.render(<App />, document.getElementById('app'));
