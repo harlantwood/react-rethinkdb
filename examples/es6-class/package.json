@@ -1,0 +1,24 @@
+{
+  "name": "tutorial",
+  "version": "0.1.0",
+  "description": "Example tutorial app using react-rethinkdb",
+  "private": true,
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "postinstall": "webpack"
+  },
+  "dependencies": {
+    "express": "^4.13.3",
+    "react": "^0.14.2",
+    "react-dom": "^0.14.2",
+    "react-rethinkdb": "^0.5.1",
+    "rethinkdb-websocket-server": "^0.5.1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.0.20",
+    "babel-loader": "^6.0.1",
+    "babel-preset-react": "^6.0.15",
+    "webpack": "^1.12.2"
+  }
+}
